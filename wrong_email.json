@@ -1,0 +1,22 @@
+{
+    "disposable": false,
+    "email": "uddin@sharetrip.net",
+    "free": false,
+    "gravatar": null,
+    "has_mx_records": true,
+    "reachable": "unknown",
+    "role_account": false,
+    "smtp": {
+        "catch_all": true,
+        "deliverable": false,
+        "disabled": false,
+        "full_inbox": false,
+        "host_exists": true
+    },
+    "suggestion": "",
+    "syntax": {
+        "domain": "sharetrip.net",
+        "username": "uddin",
+        "valid": true
+    }
+}
