@@ -11,40 +11,77 @@ import (
 
 var (
 	verifier = emailverifier.NewVerifier().EnableSMTPCheck()
-	mail = "uddin@sharetrp.net"
+	mail = "uddin@emerico.com"
 )
 
 
-func Handler(w http.ResponseWriter, r *http.Request) {
+type ErrorResponse struct {
+	Code int  `json:"code"` 
+	Status string `json:"status"`
+	Message string `json:"message"`
+ }  
 
-	ret, err := verifier.Verify(mail)
+ type SuccesResponse struct {
+	Response interface{} `json:"response"` 
+	Code int  `json:"code"` 
+	Status string `json:"status"`
+ }  
+
+
+func GetEmailVerification(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	
+	w.Header().Set("Content-Type", "application/json")
+
+	errorResponse := ErrorResponse {
+		Code: 400,
+		Status: "Not valid",
+		Message: "Error",
+	}	
+	ret, err := verifier.Verify(ps.ByName("email"))
+
 	if err != nil {
-		fmt.Println("verify email address failed, error is: ", err)
+		errorResponse.Message = err.Error()
+		error_json, _ := json.Marshal(errorResponse)
+		_, _ = fmt.Fprint(w,string(error_json))
+		//fmt.Fprint(w, string(error_json))
 		return
 	}
 	if !ret.Syntax.Valid {
-		fmt.Println("email address syntax is invalid")
+		errorResponse.Message = "email address syntax is invalid"
+		error_json, _ := json.Marshal(errorResponse)
+		_, _ = fmt.Fprint(w,string(error_json))
 		return
 	}
 
-	bytes, err := json.Marshal(ret)
+	succesResponse := SuccesResponse {
+		Response: ret,
+		Code: 200,
+		Status: "Success",
+	}
+
+	jsonResponse, err := json.Marshal(succesResponse)
+	//jsonResponse, err := json.Marshal(ret)
+
+
 	if err != nil {
-		http.Error(w, err.Error(), 500)
+		errorResponse.Message = err.Error()
+		error_json, _ := json.Marshal(errorResponse)
+		_, _ = fmt.Fprint(w, string(error_json))
 		return
-	}
+	} 
 
-//	fmt.Println("EMail Verification:", ret)
-
-	_, _ = fmt.Fprint(w, string(bytes))
+	_, _ = fmt.Fprint(w, string(jsonResponse))
 
 }
 
 func main() {
 
-	http.HandleFunc("/", Handler)
-	http.ListenAndServe(":8041", nil)
-
 	router:= httprouter.New()
-	log.Fatal(http.ListenAndServe(":8080", router))
+	router.GET("/v1/:email/verification", GetEmailVerification)
 
+	log.Fatal(http.ListenAndServe(":8041", router))
+
+	
 }
+
+
